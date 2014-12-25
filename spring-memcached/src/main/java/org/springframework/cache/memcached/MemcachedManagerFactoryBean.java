@@ -39,8 +39,7 @@ public class MemcachedManagerFactoryBean implements FactoryBean<CacheManager>,
 
 	public void afterPropertiesSet() throws Exception {
 		logger.info("Initializing  Memcached CacheManager");
-		InputStream input = (this.configLocation != null) ? this.configLocation
-				.getInputStream() : null;
+		InputStream input = (this.configLocation != null) ? this.configLocation.getInputStream() : null;
 		try {
 			Configuration configuration = (input != null) ? ConfigurationFactory.parse(input) : ConfigurationFactory.parse();
 			this.cacheManager = new CacheManager(configuration);

@@ -3,12 +3,16 @@ package org.springframework.cache.memcached;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import net.rubyeye.xmemcached.MemcachedClient;
+import net.rubyeye.xmemcached.XMemcachedClientBuilder;
 
 import org.springframework.cache.Cache;
 
@@ -23,10 +27,13 @@ public class CacheManager {
 		init(configuration);
 	}
 
-	public CacheManager(Configuration configuration, MemcachedClient memcachedClient) {
+	public CacheManager(Configuration configuration,
+			MemcachedClient memcachedClient) {
 		super();
-		this.memcachedClient = memcachedClient;
+
 		init(configuration);
+
+		this.memcachedClient = memcachedClient;
 	}
 
 	private void init(Configuration configLocation) {
@@ -34,10 +41,13 @@ public class CacheManager {
 		init(configLocation, null, null, null);
 	}
 
-	protected synchronized void init(Configuration initialConfiguration,String configurationFileName, URL configurationURL,InputStream configurationInputStream) {
+	protected synchronized void init(Configuration initialConfiguration,
+			String configurationFileName, URL configurationURL,
+			InputStream configurationInputStream) {
 		Configuration configuration;
 		if (initialConfiguration == null)
-			configuration = parse(configurationFileName, configurationURL,configurationInputStream);
+			configuration = parse(configurationFileName, configurationURL,
+					configurationInputStream);
 		else {
 			configuration = initialConfiguration;
 		}
@@ -48,16 +58,41 @@ public class CacheManager {
 			e.printStackTrace();
 
 		}
+
 	}
 
 	private void doInit(Configuration configuration) {
-		Map<String,CacheConfiguration> cacheConfigs = configuration.getCacheConfigurations();
-	     for (CacheConfiguration config : cacheConfigs.values()) {
-	        
-	    	 MemCache memcache=new MemCache(config.getName(),config.getTimeToLiveSeconds(),memcachedClient);
-	    	 memcache.setStatus(MemCache.Status.alive);
-	    	 memecaches.put(config.getName(),memcache);
-	      }		
+		
+	     
+	     List<HostConfiguration> hostConfigs = configuration.getHostConfigurations();
+	     List<InetSocketAddress> addressList=new ArrayList<InetSocketAddress>();
+	    // int[] weights;
+	     try {
+	    	 
+	    	 for (HostConfiguration config : hostConfigs) {
+	 	        
+	    		 InetSocketAddress address=new InetSocketAddress(config.getAddress(),config.getPort());
+	    		 addressList.add(address);
+	    		 
+	    		 
+		      }	
+	    	 
+	    	XMemcachedClientBuilder memcachedClientBuilder=new XMemcachedClientBuilder(addressList);
+	    	memcachedClientBuilder.setConnectionPoolSize(configuration.getConnectionPoolSize());
+	    	memcachedClientBuilder.setFailureMode(configuration.isFailureMode());
+	    	memcachedClientBuilder.setConnectTimeout(configuration.getConnectTimeout());
+			memcachedClient= memcachedClientBuilder.build();
+			Map<String,CacheConfiguration> cacheConfigs = configuration.getCacheConfigurations();
+		     for (CacheConfiguration config : cacheConfigs.values()) {
+		        
+		    	 MemCache memcache=new MemCache(config.getName(),config.getTimeToLiveSeconds(),memcachedClient);
+		    	 memcache.setStatus(MemCache.Status.alive);
+		    	 memecaches.put(config.getName(),memcache);
+		      }	
+		} catch (IOException e) {
+			
+			e.printStackTrace();
+		}
 	}
 
 	private synchronized Configuration parse(String configurationFileName,

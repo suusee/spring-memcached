@@ -103,6 +103,7 @@ public class MemCache {
 
 		try {
 			final String keys = this.getKey(key.toString());
+		
 			return memcachedClient.withNamespace(name,
 					new MemcachedClientCallable<Object>() {
 						public Object call(MemcachedClient client)

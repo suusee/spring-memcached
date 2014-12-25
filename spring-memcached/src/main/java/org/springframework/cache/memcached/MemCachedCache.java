@@ -29,8 +29,7 @@ public class MemCachedCache implements Cache {
 
 	public ValueWrapper get(Object key) {
 
-		Object value = this.cache.get(key);
-
+		Object value = cache.get(key);
 		return ((value != null) ? new SimpleValueWrapper(value) : null);
 	}
 
@@ -51,7 +50,7 @@ public class MemCachedCache implements Cache {
 	@SuppressWarnings("unchecked")
 	public <T> T get(Object key, Class<T> type) {
 	
-		Object value = this.cache.get(key);
+		Object value =cache.get(key);
 		   if(value != null){
 			  if ((type != null) && (!(type.isInstance(value)))) {
 		      throw new IllegalStateException("Cached value is not of required type [" + type.getName() + "]: " + value);

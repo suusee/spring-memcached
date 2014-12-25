@@ -18,10 +18,12 @@ import org.dom4j.io.SAXReader;
 
 public final class ConfigurationFactory {
 
-	protected static final Log logger = LogFactory
-			.getLog(ConfigurationFactory.class);
+	protected static final Log logger = LogFactory.getLog(ConfigurationFactory.class);
 	private static final String DEFAULT_CLASSPATH_CONFIGURATION_FILE = "/memcached.xml";
 	private static final String FAILSAFE_CLASSPATH_CONFIGURATION_FILE = "/memcached-failsafe.xml";
+	private static final int DEFAULT_CONNECTION_POOL_SIZE = 10;
+	private static final boolean DEFAULT_FAILURE_MODE = false;
+	private static final long DEFAULT_CONNECT_TIMEOUT = 1000;
 
 	public static Configuration parse(File file) {
 
@@ -62,17 +64,33 @@ public final class ConfigurationFactory {
 				Node poolSize=configNode.selectSingleNode("connectionPoolSize");
 				if(poolSize!=null){
 				  String connectionPoolSize=poolSize.getText();
-				 if(connectionPoolSize!=null&&(connectionPoolSize.equals("")==false)){
+				 if(connectionPoolSize!=null&&(!connectionPoolSize.equals(""))){
 				  configuration.setConnectionPoolSize(Integer.valueOf(connectionPoolSize));
+				 }else{
+					 
+					 configuration.setConnectionPoolSize(DEFAULT_CONNECTION_POOL_SIZE) ;
 				 }
 				}
 				
 				Node mode=configNode.selectSingleNode("failureMode");
 				if(mode!=null){
 				  String failureMode=mode.getText();
-				  if(failureMode!=null&&(failureMode.equals("")==false)){
+				  if(failureMode!=null&&(!failureMode.equals(""))){
 				    configuration.setFailureMode(Boolean.valueOf(failureMode));
-					
+				  }else
+				  {
+					  configuration.setFailureMode(DEFAULT_FAILURE_MODE); 
+				  }
+				}
+				
+				Node connectTimeout=configNode.selectSingleNode("connectTimeout");
+				if(connectTimeout!=null){
+				  String timeout=connectTimeout.getText();
+				  if(timeout!=null&&(!timeout.equals(""))){
+					  configuration.setConnectTimeout(Long.valueOf(timeout));
+				  }else
+				  {
+					  configuration.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT); 
 				  }
 				}
 
